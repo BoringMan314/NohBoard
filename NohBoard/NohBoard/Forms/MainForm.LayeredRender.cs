@@ -309,6 +309,43 @@ namespace ThoNohT.NohBoard.Forms
             }
         }
 
+        /// <summary>
+        /// Shows a system MessageBox that remains clickable while the layered keyboard overlay is active.
+        /// </summary>
+        internal DialogResult ShowAppMessageBox(
+            string text,
+            string caption,
+            MessageBoxButtons buttons,
+            MessageBoxIcon icon = MessageBoxIcon.None)
+        {
+            HookManager.EnterModalUiScope();
+
+            var beganLayeredModal = false;
+            var overlayClickThrough = false;
+            try
+            {
+                if (this.IsLayeredOverlayActive)
+                {
+                    this.BeginLayeredOverlayModalMode();
+                    beganLayeredModal = true;
+                    this.ApplyLayeredOverlayPointerStyles(true);
+                    overlayClickThrough = true;
+                }
+
+                return MessageBox.Show(this, text, caption, buttons, icon);
+            }
+            finally
+            {
+                if (overlayClickThrough)
+                    this.ApplyLayeredOverlayPointerStyles(this._overlayLocked);
+
+                if (beganLayeredModal)
+                    this.EndLayeredOverlayModalMode();
+
+                HookManager.ExitModalUiScope();
+            }
+        }
+
         private void WireDialogAboveLayeredOverlay(Form dialog)
         {
             var stacked = false;

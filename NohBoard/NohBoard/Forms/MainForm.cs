@@ -862,8 +862,7 @@ namespace ThoNohT.NohBoard.Forms
         /// </summary>
         private void mnuGenerateLog_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show(
-                    this,
+            if (this.ShowAppMessageBox(
                     UiTranslate.T(
                         "This will crash NohBoard in order to generate a log, are you sure you want to do this?",
                         "將會刻意讓 NohBoard 當機以產生記錄檔，確定嗎？",
