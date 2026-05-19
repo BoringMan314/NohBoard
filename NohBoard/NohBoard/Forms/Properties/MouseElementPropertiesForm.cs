@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (C) 2017 by Eric Bataille <e.c.p.bataille@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
@@ -21,8 +21,10 @@ namespace ThoNohT.NohBoard.Forms.Properties
     using System;
     using System.Linq;
     using System.Windows.Forms;
-    using Extra;
+    using ThoNohT.NohBoard.Forms;
+    using ThoNohT.NohBoard.Extra;
     using Hooking;
+    using ThoNohT.NohBoard.Hooking.Interop;
     using Keyboard.ElementDefinitions;
 
     public partial class MouseElementPropertiesForm : Form
@@ -72,8 +74,6 @@ namespace ThoNohT.NohBoard.Forms.Properties
 
             if (initialDefinition is MouseKeyDefinition)
             {
-                this.Text = "Mouse Key Properties";
-
                 this.cmbKeyCode.Items.Clear();
                 this.cmbKeyCode.Items.Add(MouseKeyCode.LeftButton);
                 this.cmbKeyCode.Items.Add(MouseKeyCode.MiddleButton);
@@ -84,8 +84,6 @@ namespace ThoNohT.NohBoard.Forms.Properties
 
             if (initialDefinition is MouseScrollDefinition)
             {
-                this.Text = "Mouse Scroll Properties";
-
                 this.cmbKeyCode.Items.Clear();
                 this.cmbKeyCode.Items.Add(MouseScrollKeyCode.ScrollUp);
                 this.cmbKeyCode.Items.Add(MouseScrollKeyCode.ScrollRight);
@@ -99,6 +97,8 @@ namespace ThoNohT.NohBoard.Forms.Properties
         /// </summary>
         private void MouseElementPropertiesForm_Load(object sender, EventArgs e)
         {
+            this.ApplyLocalizedUiTexts();
+
             if (this.initialDefinition is MouseKeyDefinition)
                 this.cmbKeyCode.SelectedItem = (MouseKeyCode) this.initialDefinition.KeyCodes.Single();
             if (this.initialDefinition is MouseScrollDefinition)
@@ -309,7 +309,8 @@ namespace ThoNohT.NohBoard.Forms.Properties
             using (var rectangleForm = new RectangleBoundaryForm(rectangle))
             {
                 rectangleForm.DimensionsSet += this.OnRectangleDimensionsSet;
-                rectangleForm.ShowDialog(this);
+                FormPlacement.AlignDialogBesideMainKeyboard(rectangleForm);
+                HookManager.RunModalUi(() => rectangleForm.ShowDialog(this));
             }
         }
 
@@ -327,6 +328,30 @@ namespace ThoNohT.NohBoard.Forms.Properties
             this.currentDefinition =
                 this.currentDefinition.ModifyMouse(boundaries: this.lstBoundaries.Items.Cast<TPoint>().ToList());
             this.DefinitionChanged?.Invoke(this.currentDefinition);
+        }
+
+        private void ApplyLocalizedUiTexts()
+        {
+            if (this.initialDefinition is MouseKeyDefinition)
+                this.Text = PropertyDialogsLocalization.MouseKeyPropertiesTitle;
+            else if (this.initialDefinition is MouseScrollDefinition)
+                this.Text = PropertyDialogsLocalization.MouseScrollPropertiesTitle;
+            else
+                this.Text = PropertyDialogsLocalization.MouseElementFallbackTitle;
+
+            this.CancelButton2.Text = PropertyDialogsLocalization.Cancel;
+            this.AcceptButton2.Text = PropertyDialogsLocalization.Accept;
+            this.lblBoundaries.Text = PropertyDialogsLocalization.BoundariesLabel;
+            this.lblText.Text = PropertyDialogsLocalization.TextLabel;
+            this.lblTextPosition.Text = PropertyDialogsLocalization.TextPositionLabel;
+            this.lblKeyCode.Text = PropertyDialogsLocalization.KeyCodeLabel;
+            this.btnAddBoundary.Text = PropertyDialogsLocalization.Add;
+            this.btnRemoveBoundary.Text = PropertyDialogsLocalization.Remove;
+            this.btnBoundaryUp.Text = PropertyDialogsLocalization.Up;
+            this.btnBoundaryDown.Text = PropertyDialogsLocalization.Down;
+            this.btnUpdateBoundary.Text = PropertyDialogsLocalization.Update;
+            this.btnCenterText.Text = PropertyDialogsLocalization.Center;
+            this.btnRectangle.Text = PropertyDialogsLocalization.Rectangle;
         }
     }
 }

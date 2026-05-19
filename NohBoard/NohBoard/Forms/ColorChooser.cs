@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (C) 2016 by Eric Bataille <e.c.p.bataille@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@ namespace ThoNohT.NohBoard.Forms
 {
     using System.Drawing;
     using System.Windows.Forms;
+    using ThoNohT.NohBoard.Hooking.Interop;
 
     /// <summary>
     /// A color chooser.
@@ -97,7 +98,7 @@ namespace ThoNohT.NohBoard.Forms
                 Color = this.Color, FullOpen = true
             };
 
-            if (picker.ShowDialog(this) == DialogResult.OK)
+            if (HookManager.RunModalUi(() => picker.ShowDialog(this)) == DialogResult.OK)
                 this.Color = picker.Color;
 
             this.Refresh();

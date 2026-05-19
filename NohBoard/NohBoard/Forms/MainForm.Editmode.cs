@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (C) 2016 by Eric Bataille <e.c.p.bataille@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
@@ -106,7 +106,7 @@ namespace ThoNohT.NohBoard.Forms
         {
             this.menuOpen = false;
 
-            this.mnuToggleEditMode.Text = this.mnuToggleEditMode.Checked ? "Stop Editing" : "Start Editing";
+            this.ApplyLocalizedEditModeToggleText();
             this.FormBorderStyle =
                 this.mnuToggleEditMode.Checked ? FormBorderStyle.Sizable : FormBorderStyle.FixedSingle;
 
@@ -137,21 +137,23 @@ namespace ThoNohT.NohBoard.Forms
         /// </summary>
         private void MainForm_MouseDown(object sender, MouseEventArgs e)
         {
+            if (this._overlayLocked) return;
             if (e.Button != MouseButtons.Left) return;
             if (!this.mnuToggleEditMode.Checked || this.menuOpen) return;
 
+            var location = this.ScalePointToKeyboardPoint(e.Location);
             ElementDefinition toManipulate;
             if (this.selectedDefinition != null)
             {
                 // Try to manipulate the selected definition, if one is selected.
-                this.selectedDefinition.StartManipulating(e.Location, KeyboardState.AltDown, translateOnly: KeyboardState.CtrlDown);
+                this.selectedDefinition.StartManipulating(location, KeyboardState.AltDown, translateOnly: KeyboardState.CtrlDown);
                 toManipulate = this.selectedDefinition;
             }
             else
             {
                 // If none is selected, allow any key to become the element to manipulate.
                 toManipulate = GlobalSettings.CurrentDefinition.Elements
-                    .LastOrDefault(x => x.StartManipulating(e.Location, KeyboardState.AltDown, translateOnly: KeyboardState.CtrlDown));
+                    .LastOrDefault(x => x.StartManipulating(location, KeyboardState.AltDown, translateOnly: KeyboardState.CtrlDown));
             }
 
             if (toManipulate == null)
@@ -163,7 +165,7 @@ namespace ThoNohT.NohBoard.Forms
                 if (KeyboardState.AltDown)
                 {
                     this.movingEverythingStart = GlobalSettings.CurrentDefinition.Clone();
-                    this.movingEverythingFrom = e.Location;
+                    this.movingEverythingFrom = location;
                 }
 
                 return;
@@ -187,7 +189,10 @@ namespace ThoNohT.NohBoard.Forms
         /// </summary>
         private void MainForm_MouseMove(object sender, MouseEventArgs e)
         {
+            if (this._overlayLocked) return;
             if (!this.mnuToggleEditMode.Checked || this.menuOpen) return;
+
+            var location = this.ScalePointToKeyboardPoint(e.Location);
 
             // Moving everything at once.
             if (this.movingEverythingFrom != null)
@@ -196,7 +201,7 @@ namespace ThoNohT.NohBoard.Forms
                 newDef.Elements.Clear();
                 foreach (var element in this.movingEverythingStart.Elements)
                 {
-                    var diff = e.Location - this.movingEverythingFrom;
+                    var diff = location - this.movingEverythingFrom;
                     newDef.Elements.Add(element.Translate(diff.Width, diff.Height));
                 }
 
@@ -207,26 +212,26 @@ namespace ThoNohT.NohBoard.Forms
 
             if (this.currentlyManipulating != null)
             {
-                var diff = (TPoint)e.Location - this.currentManipulationPoint;
+                var diff = (TPoint)location - this.currentManipulationPoint;
                 this.cumulManipulation += diff;
 
                 this.currentlyManipulating = (this.currentlyManipulating.Value.id, this.manipulationStart.Manipulate(this.cumulManipulation));
-                this.currentManipulationPoint = e.Location;
+                this.currentManipulationPoint = location;
             }
             else
             {
-                this.currentManipulationPoint = e.Location;
+                this.currentManipulationPoint = location;
 
                 // If a definition is selected, don't highlight others.
                 if (this.selectedDefinition != null)
                 {
                     // Preview the manipulation.
-                    this.selectedDefinition.StartManipulating(e.Location, KeyboardState.AltDown, true, KeyboardState.CtrlDown);
+                    this.selectedDefinition.StartManipulating(location, KeyboardState.AltDown, true, KeyboardState.CtrlDown);
                 }
                 else
                 {
                     this.highlightedDefinition = GlobalSettings.CurrentDefinition.Elements
-                        .LastOrDefault(x => x.StartManipulating(e.Location, KeyboardState.AltDown, translateOnly: KeyboardState.CtrlDown));
+                        .LastOrDefault(x => x.StartManipulating(location, KeyboardState.AltDown, translateOnly: KeyboardState.CtrlDown));
                 }
             }
         }
@@ -236,6 +241,9 @@ namespace ThoNohT.NohBoard.Forms
         /// </summary>
         private void MainForm_MouseUp(object sender, MouseEventArgs e)
         {
+            if (this._overlayLocked) return;
+            var location = this.ScalePointToKeyboardPoint(e.Location);
+
             // Always reset this value when releasing the mouse.
             if (this.movingEverythingFrom != null)
             {
@@ -259,7 +267,7 @@ namespace ThoNohT.NohBoard.Forms
             if (this.cumulManipulation.Length() == 0 && this.selectedDefinition != null)
             {
                 var elementsUnderCursor = GlobalSettings.CurrentDefinition.Elements
-                  .Where(x => x.StartManipulating(e.Location, KeyboardState.AltDown, translateOnly: KeyboardState.CtrlDown))
+                  .Where(x => x.StartManipulating(location, KeyboardState.AltDown, translateOnly: KeyboardState.CtrlDown))
                   .Reverse();
 
                 var nextelementUnderCursor = elementsUnderCursor
@@ -376,7 +384,7 @@ namespace ThoNohT.NohBoard.Forms
 
                 this.selectedDefinition = newDefinition;
                 this.ResetBackBrushes();
-                this.Refresh();
+                this.InvalidateKeyboardSurface();
                 return base.ProcessCmdKey(ref msg, keyData);
             }
 
@@ -421,7 +429,7 @@ namespace ThoNohT.NohBoard.Forms
                 this.selectedDefinition = null;
                 this.highlightedDefinition = null;
                 this.ResetBackBrushes();
-                this.Refresh();
+                this.InvalidateKeyboardSurface();
             }
 
             return base.ProcessCmdKey(ref msg, keyData);
@@ -663,8 +671,13 @@ namespace ThoNohT.NohBoard.Forms
             if (def.Boundaries.Count < 4)
             {
                 MessageBox.Show(
-                    "You cannot remove another boundary, there must be at least 3.",
-                    "Error removing boundary",
+                    this,
+                    UiTranslate.T(
+                        "You cannot remove another boundary, there must be at least 3.",
+                        "無法再移除邊界點，至少需要保留三個。",
+                        "无法再移除边界点，至少需要保留三个。",
+                        "境界点をこれ以上削除できません。最低 3 つ必要です。"),
+                    UiTranslate.T("Error removing boundary", "移除邊界錯誤", "移除边界错误", "境界削除エラー"),
                     MessageBoxButtons.OK);
                 return;
             }
@@ -725,7 +738,7 @@ namespace ThoNohT.NohBoard.Forms
                     propertiesForm.DefinitionChanged += OnDefinitionChanged;
                     propertiesForm.DefinitionSaved += OnDefinitionSaved;
 
-                    propertiesForm.ShowDialog(this);
+                    this.ShowAppModalDialog(propertiesForm);
                     return;
                 }
             }
@@ -737,7 +750,7 @@ namespace ThoNohT.NohBoard.Forms
                     propertiesForm.DefinitionChanged += OnDefinitionChanged;
                     propertiesForm.DefinitionSaved += OnDefinitionSaved;
 
-                    propertiesForm.ShowDialog(this);
+                    this.ShowAppModalDialog(propertiesForm);
                     return;
                 }
             }
@@ -749,7 +762,7 @@ namespace ThoNohT.NohBoard.Forms
                     propertiesForm.DefinitionChanged += OnDefinitionChanged;
                     propertiesForm.DefinitionSaved += OnDefinitionSaved;
 
-                    propertiesForm.ShowDialog(this);
+                    this.ShowAppModalDialog(propertiesForm);
                     return;
                 }
             }
@@ -783,7 +796,7 @@ namespace ThoNohT.NohBoard.Forms
                     GlobalSettings.Settings.UpdateDefinition(GlobalSettings.CurrentDefinition, true);
                 };
 
-                propertiesForm.ShowDialog(this);
+                this.ShowAppModalDialog(propertiesForm);
             }
         }
 
@@ -792,9 +805,25 @@ namespace ThoNohT.NohBoard.Forms
         /// </summary>
         private void MainForm_ResizeEnd(object sender, EventArgs e)
         {
-            if (!this.mnuToggleEditMode.Checked) return;
+            if (!this.mnuToggleEditMode.Checked)
+                return;
 
-            GlobalSettings.Settings.UpdateDefinition(GlobalSettings.CurrentDefinition.Resize(this.ClientSize), true);
+            // Layered mode: main client height is 0 (caption only); keyboard is on the overlay HWND.
+            if (this.IsLayeredOverlayActive)
+            {
+                this.SyncLayeredOverlayBounds();
+                this.InvalidateKeyboardSurface();
+                return;
+            }
+
+            if (GlobalSettings.CurrentDefinition == null)
+                return;
+
+            var client = this.ClientSize;
+            if (client.Width <= 0 || client.Height <= 0)
+                return;
+
+            GlobalSettings.Settings.UpdateDefinition(GlobalSettings.CurrentDefinition.Resize(client), true);
 
             this.ResetBackBrushes();
         }
@@ -812,7 +841,13 @@ namespace ThoNohT.NohBoard.Forms
 
             if (GlobalSettings.Settings.LoadedStyle == null)
             {
-                MessageBox.Show("Please load or save a style before editing element styles.");
+                MessageBox.Show(
+                    this,
+                    UiTranslate.T(
+                        "Please load or save a style before editing element styles.",
+                        "請先載入或儲存樣式，再編輯元素樣式。",
+                        "请先加载或保存样式，再编辑元素样式。",
+                        "要素スタイルを編集する前に、スタイルを読み込むか保存してください。"));
                 return;
             }
 
@@ -853,7 +888,7 @@ namespace ThoNohT.NohBoard.Forms
                         GlobalSettings.Settings.UpdateStyle(GlobalSettings.CurrentStyle, true);
                     };
 
-                    styleForm.ShowDialog(this);
+                    this.ShowAppModalDialog(styleForm);
                 }
             }
 
@@ -889,7 +924,7 @@ namespace ThoNohT.NohBoard.Forms
                         GlobalSettings.Settings.UpdateStyle(GlobalSettings.CurrentStyle, true);
                     };
 
-                    styleForm.ShowDialog(this);
+                    this.ShowAppModalDialog(styleForm);
                 }
             }
         }
@@ -903,7 +938,13 @@ namespace ThoNohT.NohBoard.Forms
 
             if (GlobalSettings.Settings.LoadedStyle == null)
             {
-                MessageBox.Show("Please load or save a style before editing the keyboard style.");
+                MessageBox.Show(
+                    this,
+                    UiTranslate.T(
+                        "Please load or save a style before editing the keyboard style.",
+                        "請先載入或儲存樣式，再編輯鍵盤樣式。",
+                        "请先加载或保存样式，再编辑键盘样式。",
+                        "キーボードスタイルを編集する前に、スタイルを読み込むか保存してください。"));
                 return;
             }
 
@@ -918,7 +959,7 @@ namespace ThoNohT.NohBoard.Forms
                 styleForm.StyleSaved += () => {
                     GlobalSettings.Settings.UpdateStyle(GlobalSettings.CurrentStyle, true);
                 };
-                styleForm.ShowDialog(this);
+                this.ShowAppModalDialog(styleForm);
             }
         }
 
@@ -953,7 +994,7 @@ namespace ThoNohT.NohBoard.Forms
         {
             using (var saveForm = new SaveStyleAsForm())
             {
-                saveForm.ShowDialog(this);
+                this.ShowAppModalDialog(saveForm);
                 saveForm.Dispose();
             }
         }

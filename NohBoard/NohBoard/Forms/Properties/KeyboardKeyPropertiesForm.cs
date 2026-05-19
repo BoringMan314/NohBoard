@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (C) 2017 by Eric Bataille <e.c.p.bataille@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,9 @@ namespace ThoNohT.NohBoard.Forms.Properties
     using System;
     using System.Linq;
     using System.Windows.Forms;
-    using Extra;
+    using ThoNohT.NohBoard.Forms;
+    using ThoNohT.NohBoard.Extra;
+    using ThoNohT.NohBoard.Hooking.Interop;
     using Keyboard.ElementDefinitions;
 
     /// <summary>
@@ -77,6 +79,8 @@ namespace ThoNohT.NohBoard.Forms.Properties
         /// </summary>
         private void KeyboardKeyPropertiesForm_Load(object sender, EventArgs e)
         {
+            this.ApplyLocalizedUiTexts();
+
             this.txtText.Text = this.initialDefinition.Text;
             this.txtShiftText.Text = this.initialDefinition.ShiftText;
             this.txtTextPosition.X = this.initialDefinition.TextPosition.X;
@@ -210,7 +214,8 @@ namespace ThoNohT.NohBoard.Forms.Properties
             using (var rectangleForm = new RectangleBoundaryForm(rectangle))
             {
                 rectangleForm.DimensionsSet += OnRectangleDimensionsSet;
-                rectangleForm.ShowDialog(this);
+                FormPlacement.AlignDialogBesideMainKeyboard(rectangleForm);
+                HookManager.RunModalUi(() => rectangleForm.ShowDialog(this));
             }
         }
 
@@ -268,8 +273,6 @@ namespace ThoNohT.NohBoard.Forms.Properties
 
             var index = this.lstKeyCodes.SelectedIndex;
             this.lstKeyCodes.Items.Remove(this.lstKeyCodes.SelectedItem);
-
-            this.lstKeyCodes.Items.Remove(this.lstKeyCodes.SelectedItem);
             this.lstKeyCodes.SelectedIndex = Math.Min(this.lstKeyCodes.Items.Count - 1, index);
 
             this.currentDefinition =
@@ -286,7 +289,7 @@ namespace ThoNohT.NohBoard.Forms.Properties
 
             if (this.detectingKeyCode)
             {
-                this.btnDetectKeyCode.Text = "Detecting...";
+                this.btnDetectKeyCode.Text = PropertyDialogsLocalization.Detecting;
                 Hooking.Interop.HookManager.KeyboardInsert = code =>
                 {
                     this.udKeyCode.Value = code;
@@ -295,7 +298,7 @@ namespace ThoNohT.NohBoard.Forms.Properties
             }
             else
             {
-                this.btnDetectKeyCode.Text = "Detect";
+                this.btnDetectKeyCode.Text = PropertyDialogsLocalization.Detect;
                 Hooking.Interop.HookManager.KeyboardInsert = null;
             }
         }
@@ -305,7 +308,7 @@ namespace ThoNohT.NohBoard.Forms.Properties
         /// </summary>
         private void KeyboardKeyPropertiesForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            this.btnDetectKeyCode.Text = "Detect";
+            this.btnDetectKeyCode.Text = PropertyDialogsLocalization.Detect;
             Hooking.Interop.HookManager.KeyboardInsert = null;
         }
 
@@ -387,6 +390,29 @@ namespace ThoNohT.NohBoard.Forms.Properties
         {
             this.DefinitionChanged?.Invoke(this.initialDefinition);
             this.DialogResult = DialogResult.Cancel;
+        }
+
+        private void ApplyLocalizedUiTexts()
+        {
+            this.Text = PropertyDialogsLocalization.KeyboardKeyPropertiesTitle;
+            this.CancelButton2.Text = PropertyDialogsLocalization.Cancel;
+            this.AcceptButton2.Text = PropertyDialogsLocalization.Accept;
+            this.lblBoundaries.Text = PropertyDialogsLocalization.BoundariesLabel;
+            this.lblText.Text = PropertyDialogsLocalization.TextLabel;
+            this.lblTextPosition.Text = PropertyDialogsLocalization.TextPositionLabel;
+            this.lblShiftText.Text = PropertyDialogsLocalization.ShiftTextLabel;
+            this.lblKeyCodes.Text = PropertyDialogsLocalization.KeyCodesLabel;
+            this.chkChangeOnCaps.Text = PropertyDialogsLocalization.ChangeCapsCapitalization;
+            this.btnAddBoundary.Text = PropertyDialogsLocalization.Add;
+            this.btnRemoveBoundary.Text = PropertyDialogsLocalization.Remove;
+            this.btnBoundaryUp.Text = PropertyDialogsLocalization.Up;
+            this.btnBoundaryDown.Text = PropertyDialogsLocalization.Down;
+            this.btnUpdateBoundary.Text = PropertyDialogsLocalization.Update;
+            this.btnCenterText.Text = PropertyDialogsLocalization.Center;
+            this.btnRectangle.Text = PropertyDialogsLocalization.Rectangle;
+            this.btnDetectKeyCode.Text = PropertyDialogsLocalization.Detect;
+            this.btnAddKeyCode.Text = PropertyDialogsLocalization.Add;
+            this.btnRemoveKeyCode.Text = PropertyDialogsLocalization.Remove;
         }
     }
 }

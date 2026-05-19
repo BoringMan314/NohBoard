@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (C) 2016 by Eric Bataille <e.c.p.bataille@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,8 @@ namespace ThoNohT.NohBoard.Controls
     using System;
     using System.Drawing;
     using System.Windows.Forms;
+    using ThoNohT.NohBoard.Extra;
+    using ThoNohT.NohBoard.Hooking.Interop;
 
     /// <summary>
     /// A color chooser.
@@ -45,10 +47,9 @@ namespace ThoNohT.NohBoard.Controls
         {
             this.Color = Color.Black;
             this.InitializeComponent();
-            this.DisplayLabel.Text = "Pick a color.";
+            this.DisplayLabel.Text = PropertyDialogsLocalization.StylePickColorFallback;
 
-            this.DisplayLabel.Left = this.Height + 2;
-            this.DisplayLabel.Width = this.Width - this.Height - 2;
+            this.LayoutColorLabel();
 
             this.SetStyle(ControlStyles.ResizeRedraw, true);
         }
@@ -120,7 +121,7 @@ namespace ThoNohT.NohBoard.Controls
                 Color = this.Color, FullOpen = true
             };
 
-            if (picker.ShowDialog(this) == DialogResult.OK)
+            if (HookManager.RunModalUi(() => picker.ShowDialog(this)) == DialogResult.OK)
                 this.Color = picker.Color;
 
             this.Refresh();
@@ -133,8 +134,27 @@ namespace ThoNohT.NohBoard.Controls
         /// </summary>
         private void DisplayLabel_Layout(object sender, LayoutEventArgs e)
         {
-            this.DisplayLabel.Left = this.Height + 2;
-            this.DisplayLabel.Width = this.Width - this.Height - 2;
+            this.LayoutColorLabel();
+        }
+
+        /// <summary>
+        /// Places the text label to the right of the color preview, vertically centered via <see cref="Label.TextAlign"/>.
+        /// </summary>
+        private void LayoutColorLabel()
+        {
+            var previewSize = this.Height;
+            this.DisplayLabel.SetBounds(
+                previewSize + 2,
+                0,
+                Math.Max(0, this.Width - previewSize - 2),
+                previewSize,
+                BoundsSpecified.All);
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            this.LayoutColorLabel();
         }
 
         #endregion Methods

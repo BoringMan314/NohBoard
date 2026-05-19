@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (C) 2016 by Eric Bataille <e.c.p.bataille@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,8 @@ namespace ThoNohT.NohBoard.Controls
     using System;
     using System.Drawing;
     using System.Windows.Forms;
+    using ThoNohT.NohBoard.Extra;
+    using ThoNohT.NohBoard.Hooking.Interop;
 
     /// <summary>
     /// A font chooser.
@@ -54,19 +56,10 @@ namespace ThoNohT.NohBoard.Controls
         {
             this.InitializeComponent();
             this.Font = DefaultFont;
-            this.DisplayLabel.Text = "Pick a font.";
+            this.DisplayLabel.Text = PropertyDialogsLocalization.StylePickFontLabel;
+            this.lblLink.Text = PropertyDialogsLocalization.StyleFontLinkLabel;
 
-            var nl = Environment.NewLine;
-            var tooltip = new ToolTip();
-            tooltip.SetToolTip(
-                this.txtLink,
-                "If a font is used that is not present on Windows systems by default, this field can be used " + nl +
-                "to provide an URL to download the font from. The user can then click on the link, download the " + nl +
-                "font and be able to use the style with the correct font. Note that every link only needs to be " + nl +
-                "provided once, even if it is used in multiple key definitions.");
-
-            this.DisplayLabel.Left = this.Height + 2;
-            this.DisplayLabel.Width = this.Width - this.Height - 2;
+            this.LayoutFontPreviewRow();
 
             this.SetStyle(ControlStyles.ResizeRedraw, true);
         }
@@ -111,6 +104,13 @@ namespace ThoNohT.NohBoard.Controls
 
         #region Methods
 
+        /// <inheritdoc />
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            this.LayoutFontPreviewRow();
+        }
+
         /// <summary>
         /// Handles a double click event. Shows a font dialog to set the new font.
         /// </summary>
@@ -124,7 +124,7 @@ namespace ThoNohT.NohBoard.Controls
                 Font = this.Font,
             };
 
-            if (picker.ShowDialog() == DialogResult.OK)
+            if (HookManager.RunModalUi(() => picker.ShowDialog()) == DialogResult.OK)
                 this.Font = picker.Font;
 
             this.Refresh();
@@ -141,12 +141,21 @@ namespace ThoNohT.NohBoard.Controls
         }
 
         /// <summary>
-        /// Handles the layouting of the control. The font display label is sized to entirely fill the entire control.
+        /// Keeps the preview row aligned like <see cref="ColorChooser"/> (compact row → 27px gutter).
+        /// </summary>
+        private void LayoutFontPreviewRow()
+        {
+            const int gutter = 27;
+            this.DisplayLabel.Left = gutter;
+            this.DisplayLabel.Width = Math.Max(0, this.Width - gutter);
+        }
+
+        /// <summary>
+        /// Handles layout for the font preview label width when the control is resized.
         /// </summary>
         private void DisplayLabel_Layout(object sender, LayoutEventArgs e)
         {
-            this.DisplayLabel.Left = 2;
-            this.DisplayLabel.Width = this.Width - 2;
+            this.LayoutFontPreviewRow();
         }
 
         #endregion Methods
