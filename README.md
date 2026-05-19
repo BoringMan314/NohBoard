@@ -8,7 +8,7 @@ NohBoard is a keyboard visualization program. I know certain applications alread
 
 ## Windows client
 
-The **Windows** client uses **.NET 8** WinForms. Only one instance runs at a time; a new launch is coordinated with a global mutex and named pipe (`Extra/SingleInstanceGuard.cs`) so you do not stack multiple overlays by mistake. Runtime options are stored in **`NohBoard.json` next to the executable** (`Constants.SettingsFilePath`). The window can be minimized to the **system tray**, with a menu to show it, toggle **overlay lock**, open settings, follow the about link, or exit. The UI is available in **en_US**, **zh_TW**, **zh_CN**, and **ja_JP** from settings (cycle order **en_US** → **zh_TW** → **zh_CN** → **ja_JP**; default **en_US**). **Keyboard scale**, **frame and fill transparency** (including the **Input Overlay** theme line), and **overlay lock** adjust how the overlay looks and behaves. **Reset settings** restores the defaults for the options on the settings dialog and saves **NohBoard.json**. On the load-keyboard dialog, font download links open in the **default browser**, and **Restart** is there for when you have finished installing fonts. The interface does not use hover tooltips on controls. To build or publish, see [**Building**](#building).
+The **Windows** client uses **.NET 8** WinForms. Only one instance runs at a time; a new launch is coordinated with a global mutex and named pipe (`Extra/SingleInstanceGuard.cs`) so you do not stack multiple overlays by mistake. Runtime options are stored in **`NohBoard.json` next to the executable** (`Constants.SettingsFilePath`). The window can be minimized to the **system tray**, with a menu to show it, toggle **overlay lock**, open settings, follow the about link, or exit. The UI is available in **en_US**, **zh_TW**, **zh_CN**, and **ja_JP** from settings (cycle order **en_US** → **zh_TW** → **zh_CN** → **ja_JP**; default **en_US**). **Keyboard scale**, **frame and fill transparency** (including the **Input Overlay** and **Tutorial** theme lines), and **overlay lock** adjust how the overlay looks and behaves. **Reset settings** restores the defaults for the options on the settings dialog and saves **NohBoard.json**. On the load-keyboard dialog, font download links open in the **default browser**, and **Restart** is there for when you have finished installing fonts. The interface does not use hover tooltips on controls. To build or publish, see [**Building**](#building).
 
 ## Rewrite
 
@@ -47,6 +47,7 @@ An initial version was made in C++, this originated from the desire to make some
 - flyingmongoose
 - JapanYoshi
 - dchitra
+- android272 (Tutorial keyboard and styles, from [PR #144](https://github.com/ThoNohT/NohBoard/pull/144))
 
 If you want to contribute, either with code, with keyboard definitions or keyboard styles, feel free to fork this repository and provide your changes via a pull request, or other means of submitting your changes back to me.
 
