@@ -1,75 +1,181 @@
-# NohBoard
+# [B.M] NohBoard
 
-NohBoard is a keyboard visualization program. I know certain applications already exist that do just this, display your keyboard on-screen. And even more probably. However, so far I have found none that were both free and easy to use. That's where this program came in, I made it to be free and easy to use, without any fancy graphics, and easily capturable (possibly with chroma key). Furthermore, it's very customizable.
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2B-0078D6)](#系統需求)
+[![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![GitHub](https://img.shields.io/badge/GitHub-bm--nohboard-181717?logo=github)](https://github.com/BoringMan314/bm-nohboard)
+[![Upstream](https://img.shields.io/badge/Upstream-ThoNohT%2FNohBoard-blue)](https://github.com/ThoNohT/NohBoard)
+[![Download](https://img.shields.io/github/downloads/BoringMan314/bm-nohboard/total)](https://github.com/BoringMan314/bm-nohboard/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Screenshots
+Windows 鍵盤／滑鼠 overlay 可視化工具：在螢幕上顯示按鍵與滑鼠操作，適合直播、錄影與 OBS 視窗擷取。
 
-![NohBoard overlay, tray, and settings (representative workflow)](screenshot/screenshot.gif)
+*Windows 键盘／鼠标 overlay 可视化工具：在屏幕上显示按键与鼠标操作，适合直播、录影与 OBS 窗口捕获。*
 
-## Windows client
+*Windows 向けキーボード／マウスオーバーレイ。配信・録画向け。*
 
-The **Windows** client uses **.NET 8** WinForms. The published executable is **`bm-nohboard.exe`**. This fork is a **separate product** from upstream [ThoNohT/NohBoard](https://github.com/ThoNohT/NohBoard): it does **not** read **`NohBoard.json`** or run **`NohBoard.exe`** for single-instance handoff. Legacy **`.kb`** keyboard files can still be imported from the load-keyboard dialog (**Load Legacy kb file...**). Only one instance runs at a time; a new launch is coordinated with app id **`bm-nohboard`** (global mutex, named pipe `\\.\pipe\bm-nohboard`, and related helpers in `Extra/SingleInstanceGuard.cs`). Runtime options are stored in **`bm-nohboard.json` next to the executable** (`Constants.SettingsFilePath`). The window can be minimized to the **system tray**, with a menu to show it, toggle **overlay lock**, open settings, follow the about link, or exit. Updates are checked against **[BoringMan314/bm-nohboard](https://github.com/BoringMan314/bm-nohboard/releases)** releases. The UI is available in **zh_TW**, **zh_CN**, **ja_JP**, and **en_US** from settings (cycle order **zh_TW** → **zh_CN** → **ja_JP** → **en_US**; default **zh_TW**). The default window title follows other **[B.M]** projects (not localized), e.g. **`[B.M] NohBoard V1.4.0 By. [B.M] 圓周率 3.14`**. **Keyboard scale**, **frame and fill transparency** (including the **Input Overlay** and **Tutorial** theme lines), and **overlay lock** adjust how the overlay looks and behaves. **Reset settings** restores the defaults for the options on the settings dialog and saves **bm-nohboard.json**. On the load-keyboard dialog, font download links open in the **default browser**, and **Restart** is there for when you have finished installing fonts. The interface does not use hover tooltips on controls. To build or publish, see [**Building**](#building).
+*Windows keyboard/mouse overlay for streaming and recording.*
 
-## Rewrite
+> **聲明**：本專案為 [ThoNohT/NohBoard](https://github.com/ThoNohT/NohBoard) 之**獨立發行 fork**，與上游 `NohBoard.exe`／`NohBoard.json` **不相容**（單一實例、設定檔皆分開）。與遊戲或平台官方無關。
 
-An initial version was made in C++, this originated from the desire to make something with graphics, and what I knew was [OBS](http://github.com/jp9000/OBS), now replaced by [OBS Studio](http://github.com/jp9000/obs-studio). That's why I started in the same spirit, using C++, and rendering with DirectX. However, having spent most of my time on C# during at least the last decade or so, I decided that I would be much more able to create awesome things in this language. That's when I re-started. Rather than using DirectX, I switched to GDI+, as we're Windows only (I'm sorry, but I just really don't use any other OS, and so far it is still the go-to OS for gaming). No really fancy graphics are required, no 3D is required. This also makes it easier to capture, as a simple window capture in OBS will do the trick now, rather than having to fiddle with game capture which might not work due to a game typically being run at the same time as NohBoard.
+---
 
-## Contributors
+![NohBoard overlay、系統匣與設定示意](screenshot/screenshot.gif)
 
-**Maintainer / original author**
-- Eric "ThoNohT" Bataille (e.c.p.bataille@gmail.com) - Original author
+![程式畫面示意](screenshot/screenshot05.png)
 
-**Contributors**
-- Marius "Buttercak3" Becker - Various bugfixes
-- Ivan "YaLTeR" Molodetskikh - Added the scroll counter *(NohBoard classic)*
-- Michal Mitter - Added button outline *(NohBoard classic)*
+---
 
-**Keyboard layouts**
-- BaronBargy
-- Burning Fish
-- Cloudwolf
-- Daigtas
-- Floatingthru
-- HAJohnny
-- Helixia
-- joao7yt
-- kernel1337
-- Krazy
-- layarion
-- MCCrafterTV
-- MtB1980
-- TicTacFoe
-- ToxicMirror
-- WayZHC
-- wingsltd
-- zolia
-- SirDifferential
-- flyingmongoose
-- JapanYoshi
-- dchitra
-- android272 (Tutorial keyboard and styles, from [PR #144](https://github.com/ThoNohT/NohBoard/pull/144))
+## 目錄
 
-If you want to contribute, either with code, with keyboard definitions or keyboard styles, feel free to fork this repository and provide your changes via a pull request, or other means of submitting your changes back to me.
+- [功能](#功能)
+- [系統需求](#系統需求)
+- [安裝方式](#安裝方式)
+- [建置與發布](#建置與發布)
+- [技術概要](#技術概要)
+- [專案結構](#專案結構)
+- [版本與多語系](#版本與多語系)
+- [與 `master` 分支的差異](#與-master-分支的差異)
+- [致謝](#致謝)
+- [維護者：更新 GitHub](#維護者更新-github)
+- [授權](#授權)
+- [問題與建議](#問題與建議)
 
-## Building
+---
 
-The WinForms client targets **.NET 8** (**`net8.0-windows`**). Install the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) on Windows, open `NohBoard/NohBoard.sln`, and build as usual. From the repository root, `build_win10.bat` performs a self-contained publish into `dist/` (it expects `NohBoard/gotri.exe` for version-stamped generated sources). If `gotri.exe` is missing, MSBuild may still work when `SolutionDir` points at the `NohBoard/` folder so templates generate; see the batch file and `NohBoard.csproj` pre-build target. Checked-out source text is normalized to **CRLF** line endings for consistent Windows diffs.
+## 功能
 
-Ship the published exe together with the **`keyboards\`** resource tree next to the program unless you use a custom layout.
+- 即時顯示鍵盤按鍵與滑鼠操作（低階 Hook + overlay 繪製）。
+- **單一實例**：app id **`bm-nohboard`**（mutex、`\\.\pipe\bm-nohboard`，見 `Extra/SingleInstanceGuard.cs`）。
+- **系統匣**：最小化到匣、顯示主視窗、**overlay 鎖定**、設定、關於（連結本倉庫 Releases）、結束。
+- **多語系介面**：`zh_TW`、`zh_CN`、`ja_JP`、`en_US`（設定中切換；預設 **zh_TW**）。
+- **視窗標題**：`[B.M] NohBoard Vx.x.x By. [B.M] 圓周率 3.14`（不隨語系切換）。
+- **overlay**：鍵盤縮放、透明度、鎖定穿透；預設主題 **Input Overlay**；內建 **Tutorial** 等。
+- **設定**：重置、**套用**、確定；寫入 exe 旁 **`bm-nohboard.json`**。
+- **更新檢查**：對 [BoringMan314/bm-nohboard Releases](https://github.com/BoringMan314/bm-nohboard/releases)。
+- 可匯入舊版 **`.kb`**；載入鍵盤對話框支援字型連結與**重新啟動**。
+- 介面**不使用**滑鼠懸停 tooltip。
 
-## Changelog
+---
 
-Update notes for each release are on this repository’s **Releases** page.
+## 系統需求
 
-## Full Documentation
+- **Windows 10 或更新版本**（x64）。
+- Releases 為 **self-contained**，一般不需另裝 .NET。
+- 自編譯需 [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)。
 
-See the [Wiki](https://github.com/ThoNohT/NohBoard/wiki) for full documentation.
+---
 
-## Donations
+## 安裝方式
 
-Donations are neither required nor requested. They are, however, always appreciated, and due to some demand, there now is the possibility to [donate](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=FFB9XFRWE5EK2).
-Note that donations are to be made purely for appreciation of performed work, and not as a means of prioritizing or requesting future work. They will not in any way impact the speed or order in which features are implemented.
+### 從 Releases（建議）
 
-## License
+1. 開啟 [Releases](https://github.com/BoringMan314/bm-nohboard/releases)（**`main` 發行**時標籤如 **V1.4.0**）。
+2. 下載 **`bm-nohboard_windows_x64-Vx.x.x.zip`**，解壓後保持 **`bm-nohboard.exe`** 與 **`keyboards\`** 同層。
+3. 執行 **`bm-nohboard.exe`**，設定存於 **`bm-nohboard.json`**。
 
-NohBoard is licensed under the GPL version 2. The license agreement is attached in this repository and can be found [here](https://github.com/ThoNohT/NohBoard/blob/master/LICENSE).
+> 勿與 **`master`** 發行的 `NohBoard.exe`／`NohBoard.json` 混用。
+
+### 從原始碼
+
+```powershell
+git clone https://github.com/BoringMan314/bm-nohboard.git
+cd bm-nohboard
+git checkout main
+build_win10.bat
+```
+
+產出見 `dist\bm-nohboard_windows_x64-V*.zip`。
+
+---
+
+## 建置與發布
+
+```bat
+build_win10.bat
+```
+
+- 需 **`NohBoard\gotri.exe`**。
+- 版本字串自 [`Version.cs.template`](NohBoard/NohBoard/Version.cs.template) 讀取，ZIP 名稱含 **`V{major}.{minor}.{patch}`**。
+- 建置前會結束 **`bm-nohboard.exe`**（若正在執行）。
+
+---
+
+## 技術概要
+
+| 項目 | 說明 |
+|------|------|
+| UI | .NET 8 WinForms |
+| 繪製 | GDI+；半透明 **layered overlay** |
+| 輸入 | 低階鍵盤／滑鼠 Hook |
+| 設定 | `bm-nohboard.json`（`Constants.SettingsFilePath`） |
+| 鍵盤 | `keyboards\` 目錄樹 |
+
+上游 Wiki：[ThoNohT/NohBoard/wiki](https://github.com/ThoNohT/NohBoard/wiki)
+
+---
+
+## 專案結構
+
+| 路徑 | 說明 |
+|------|------|
+| [`NohBoard/NohBoard.sln`](NohBoard/NohBoard.sln) | 方案 |
+| [`NohBoard/NohBoard/`](NohBoard/NohBoard/) | 主程式、`Forms/`、`Extra/` |
+| [`NohBoard/Hooking/`](NohBoard/Hooking/) | Hook 與輸入狀態 |
+| [`keyboards/`](keyboards/) | 鍵盤版面與樣式 |
+| [`screenshot/`](screenshot/) | 說明用圖 |
+| [`build_win10.bat`](build_win10.bat) | 私有發行打包（`bm-nohboard`） |
+
+---
+
+## 版本與多語系
+
+- **版本**：[`Version.cs.template`](NohBoard/NohBoard/Version.cs.template) → `Version.Get`（例如 `v1.4.0`）。
+- **語系**：`UiLanguage`／`UiTranslate`；預設 **zh_TW**。
+- **發布**：僅在確認後於 **`main`** 打 tag 並建立 Release（`--target main`）。
+
+---
+
+## 與 `master` 分支的差異
+
+| 項目 | **`main`（本分支）** | **`master`（PR）** |
+|------|----------------------|---------------------|
+| 用途 | 私有發行 | 上游 PR #222 |
+| 執行檔 | `bm-nohboard.exe` | `NohBoard.exe` |
+| 設定檔 | `bm-nohboard.json` | `NohBoard.json` |
+| 預設語系 | zh_TW | en_US |
+| 更新來源 | 本倉庫 Releases | 上游／PR 流程 |
+
+功能修正請先合入 **`master`**，再 cherry-pick／合併私有化到 **`main`**。
+
+---
+
+## 致謝
+
+- **原作者**：Eric「ThoNohT」Bataille — [ThoNohT/NohBoard](https://github.com/ThoNohT/NohBoard)
+- 其他貢獻者與鍵盤社群見上游專案說明。
+
+---
+
+## 維護者：更新 GitHub
+
+```powershell
+git checkout main
+git add .
+git commit -m "V1.4.0"
+git push origin main
+```
+
+Release：`gh release create ... --target main`，只上傳 **`bm-nohboard_windows_x64-*.zip`**；**Source code** 用 GitHub 自建。
+
+---
+
+## 授權
+
+本倉庫發行包裝以 **[MIT License](LICENSE)** 為準。  
+所基於之 NohBoard 原始碼依各檔 **[GPL-2.0](https://github.com/ThoNohT/NohBoard/blob/master/LICENSE)** 標頭授權；散布衍生作品時請遵守 GPL 規定。
+
+---
+
+## 問題與建議
+
+歡迎至 [GitHub Issues](https://github.com/BoringMan314/bm-nohboard/issues) 回報。請註明 **`main`**、版本號與重現步驟。
