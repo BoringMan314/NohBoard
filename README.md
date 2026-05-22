@@ -1,11 +1,12 @@
 # [B.M] NohBoard
 
-[Platform](#系統需求)
-[.NET](https://dotnet.microsoft.com/download/dotnet/8.0)
-[GitHub](https://github.com/BoringMan314/bm-nohboard)
-[Upstream](https://github.com/ThoNohT/NohBoard)
+[![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white)](#系統需求)
+[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![Build](https://img.shields.io/badge/Build-self--contained-512BD4?logo=dotnet&logoColor=white)](#建置與發布)
+[![GitHub](https://img.shields.io/badge/GitHub-bm--nohboard-181717?logo=github)](https://github.com/BoringMan314/bm-nohboard)
+[![Upstream](https://img.shields.io/badge/Upstream-ThoNohT%2FNohBoard-6e7681?logo=github)](https://github.com/ThoNohT/NohBoard)
 [![GitHub all releases](https://img.shields.io/github/downloads/BoringMan314/bm-nohboard/total)](https://github.com/BoringMan314/bm-nohboard/releases)
-[License: MIT](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Windows 鍵盤／滑鼠 overlay 可視化工具：在螢幕上顯示按鍵與滑鼠操作，適合直播、錄影與 OBS 視窗擷取。
 
@@ -19,7 +20,7 @@ Windows 鍵盤／滑鼠 overlay 可視化工具：在螢幕上顯示按鍵與滑
 
 ---
 
-NohBoard overlay、系統匣與設定示意程式畫面示意
+![程式畫面示意](screenshot/screenshot.gif)
 
 ---
 
